@@ -3,6 +3,7 @@ const axios = require('axios')
 const cheerio = require('cheerio')
 
 async function getFilms(name) {
+    console.log(name)
     name = formatName(name)
     console.log("getFilms is searching for " + name)
     // const testResponse = await axios.get(`http://localhost:8080/films/${name}`)
@@ -23,11 +24,15 @@ async function getFilms(name) {
 
     const resultLinkElements = getElementsByTypeAndClass(searchResultHTML, "a", ".result_text")
 
-    const onlyActors = resultLinkElements.filter(element=> /name/.test(element.href))
-
+    const onlyActors = resultLinkElements.filter(element=> {
+        return (element.hasOwnProperty('href') && /name/.test(element.href))
+    })
+    
+    console.log(onlyActors)
+    const HREF = onlyActors[0].href
     console.log(">>>>>>>>GETTING FILMS<<<<<<<<<<")
     
-    const request2 = await axios.get(`https://www.imdb.com${onlyActors[0].href}`).then((data)=> {
+    const request2 = await axios.get(`https://www.imdb.com${HREF}`).then((data)=> {
         console.log("got actor page html")
         console.log(Object.keys(data))
         return data })
@@ -36,16 +41,20 @@ async function getFilms(name) {
 
     const titleElements = getElementsByTypeAndClass(actorPageHTML, "", ".filmo-row")
 
+    const imageURL = getElementsByTypeAndClass(actorPageHTML, "", "#name-poster")
+    console.log("ImageURL: ", imageURL, " <<<")
+
     const actorRoles = titleElements.filter(element=>{return /actor|actress/.test(element.id) === true})
     const producerRoles = titleElements.filter(element=>{return /producer/.test(element.id) === true})
     const directorRoles = titleElements.filter(element=>{return /director/.test(element.id) === true})
 
     const roles = {
+        image: [imageURL[0].src],
         actor: actorRoles.map(element=>{return element.text}),
         producer: producerRoles.map(element=>{return element.text}),
         director: directorRoles.map(element=>{return element.text})
     }
-
+    console.log(roles)
     return roles
 
 }

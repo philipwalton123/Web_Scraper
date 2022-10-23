@@ -65,4 +65,7 @@ function getElementsByTypeAndClass(html, elementType, className) {
     return elements
 }
 
-getFilms("Helen Mirren")
+getFilms("Helen Mirren").then(result=> {
+    console.log("finished")
+    console.log(result)
+})
